@@ -15,14 +15,10 @@ def add_parameters_to_path(path, parameters):
 
 async def validate_response(response):
         if response.status == 401:
-            raise exceptions.UnauthroizedException()
+            raise exceptions.Unauthorized()
 
         if response.status == 404:
-            data = await response.json()
-            raise exceptions.NotFound(
-                data['message'],
-                data['errors'],
-                data['tracking_id'])
+            raise exceptions.NotFound(await response.json())
 
         if response.status == 429:
             raise exceptions.TooManyRequests(
@@ -40,7 +36,8 @@ async def validate_response(response):
 
         raise exceptions.SparkApiException(
             response.status,
-            await response.json())
+            await response.json(),
+            'Failed request')
 
 
 class Requests:

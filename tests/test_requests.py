@@ -254,35 +254,35 @@ async def test_deleting(test_client, test_server):
 async def test_unauthorized_listing(test_client, test_server):
     api = await create_api(test_client, test_server)
     test_server.unauthorized()
-    with pytest.raises(exceptions.UnauthroizedException):
+    with pytest.raises(exceptions.Unauthorized):
         await api.list('rooms')
 
 
 async def test_unauthorized_get_details(test_client, test_server):
     api = await create_api(test_client, test_server)
     test_server.unauthorized()
-    with pytest.raises(exceptions.UnauthroizedException):
+    with pytest.raises(exceptions.Unauthorized):
         await api.get('messages', 'some_id')
 
 
 async def test_unauthorized_create(test_client, test_server):
     api = await create_api(test_client, test_server)
     test_server.unauthorized()
-    with pytest.raises(exceptions.UnauthroizedException):
+    with pytest.raises(exceptions.Unauthorized):
         await api.create('messages', {})
 
 
 async def test_unauthorized_update(test_client, test_server):
     api = await create_api(test_client, test_server)
     test_server.unauthorized()
-    with pytest.raises(exceptions.UnauthroizedException):
+    with pytest.raises(exceptions.Unauthorized):
         await api.update('messages', 'update_id', {})
 
 
 async def test_unauthorized_delete(test_client, test_server):
     api = await create_api(test_client, test_server)
     test_server.unauthorized()
-    with pytest.raises(exceptions.UnauthroizedException):
+    with pytest.raises(exceptions.Unauthorized):
         await api.delete('messages', 'update_id')
 
 
