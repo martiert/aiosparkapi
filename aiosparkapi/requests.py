@@ -3,7 +3,7 @@ import json
 import aiosparkapi.exceptions as exceptions
 
 
-def add_parameters_to_path(path, parameters):
+def _add_parameters_to_path(path, parameters):
     if not parameters:
         return path
 
@@ -13,7 +13,7 @@ def add_parameters_to_path(path, parameters):
     return path[:-1]
 
 
-async def validate_response(response):
+async def _validate_response(response):
         if response.status == 401:
             raise exceptions.Unauthorized()
 
@@ -40,6 +40,48 @@ async def validate_response(response):
             'Failed request')
 
 
+def _get_next_link(request):
+    link = request.headers.get('Link')
+    if not link:
+        return None
+
+    return link.split()[0][1:-2]
+
+
+class AsyncGenerator:
+
+    def __init__(self, results, next_link, client, headers):
+        self._client = client
+        self._headers = headers
+        self._set_result(results, next_link)
+
+    def _set_result(self, results, next_link):
+        self._results = results['items']
+        self._index = 0
+        self._length = len(self._results)
+        self._next_link = next_link
+
+    async def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        if self._index == self._length:
+            if not self._next_link:
+                raise StopAsyncIteration
+            response = await self._client.get(
+                self._next_link,
+                headers=self._headers)
+            if not response.status == 200:
+                await _validate_response(response)
+
+            results = await response.json()
+            self._set_result(results, _get_next_link(response))
+
+        result = self._results[self._index]
+        self._index += 1
+        return result
+
+
 class Requests:
 
     def __init__(self, token, client):
@@ -49,12 +91,17 @@ class Requests:
         }
 
     async def list(self, path, parameters=None):
-        path = add_parameters_to_path(path, parameters)
+        path = _add_parameters_to_path(path, parameters)
         response = await self._client.get(path, headers=self._headers)
 
-        if response.status == 200:
-            return await response.json()
-        await validate_response(response)
+        if not response.status == 200:
+            await _validate_response(response)
+
+        results = await response.json()
+        return AsyncGenerator(
+            results,
+            _get_next_link(response),
+            self._client, self._headers)
 
     async def get(self, path, fetch_id):
         path = '{}/{}'.format(path, fetch_id)
@@ -62,7 +109,7 @@ class Requests:
 
         if response.status == 200:
             return await response.json()
-        await validate_response(response)
+        await _validate_response(response)
 
     async def create(self, path, arguments):
         headers = self._headers
@@ -75,7 +122,7 @@ class Requests:
 
         if response.status == 200:
             return await response.json()
-        await validate_response(response)
+        await _validate_response(response)
 
     async def update(self, path, update_id, arguments):
         path = '{}/{}'.format(path, update_id)
@@ -89,7 +136,7 @@ class Requests:
 
         if response.status == 200:
             return await response.json()
-        await validate_response(response)
+        await _validate_response(response)
 
     async def delete(self, path, delete_id):
         path = '{}/{}'.format(path, delete_id)
@@ -100,4 +147,4 @@ class Requests:
 
         if response.status == 204:
             return True
-        await validate_response(response)
+        await _validate_response(response)

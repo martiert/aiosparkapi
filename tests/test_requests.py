@@ -30,12 +30,16 @@ class TestServer:
         self.last_headers = None
         self.last_id = None
         self.last_body = None
+        self._headers = {}
 
     def unauthorized(self):
         self._authorized = False
 
     def retry_after(self, timeout):
         self._retry_after = timeout
+
+    def add_header(self, key, value):
+        self._headers[key] = value
 
     async def get_rooms(self, request):
         if not self._authorized:
@@ -45,13 +49,16 @@ class TestServer:
                 status=429,
                 headers={'retry-after': str(self._retry_after)})
 
+        headers = self._headers
+        headers['content-type'] = 'application/json'
+
         self.reset()
         self.last_parameters = request.query
         self.last_headers = get_headers(request)
 
         return web.Response(
                 body=json.dumps(self.response).encode(),
-                headers={'content-type': 'application/json'},
+                headers=headers,
                 status=self.status_code)
 
     async def get_messages(self, request):
@@ -126,19 +133,21 @@ def test_server():
     yield server
 
 
-async def test_listing_without_parameters(test_client, test_server):
+async def test_listing_without_parameters2(test_client, test_server):
     api = await create_api(test_client, test_server)
-    expected = {
-        'list': 'result',
-    }
-    test_server.response = expected
+    expected = [
+        {
+            'list': 'result',
+        }
+    ]
+    test_server.response = {'items': expected}
     expected_headers = {
         'Authorization': 'Bearer my_bot_token',
     }
 
     response = await api.list('rooms')
 
-    assert response == expected
+    assert await response.__anext__() == expected[0]
     assert test_server.last_parameters == {}
     assert test_server.last_headers == expected_headers
     assert test_server.last_id is None
@@ -150,7 +159,7 @@ async def test_listing_with_parameters(test_client, test_server):
     expected = {
         'list': 'result with parameters',
     }
-    test_server.response = expected
+    test_server.response = {'items': [expected]}
     expected_headers = {
         'Authorization': 'Bearer my_bot_token',
     }
@@ -161,11 +170,37 @@ async def test_listing_with_parameters(test_client, test_server):
     }
     response = await api.list('rooms', parameters)
 
-    assert response == expected
+    assert await response.__anext__() == expected
     assert test_server.last_parameters == parameters
     assert test_server.last_headers == expected_headers
     assert test_server.last_id is None
     assert test_server.last_body is None
+
+
+async def test_list_pagination_with_parameters(test_client, test_server):
+    api = await create_api(test_client, test_server)
+    expected = {
+        'list': 'result with parameters',
+    }
+    expected_headers = {
+        'Authorization': 'Bearer my_bot_token',
+    }
+
+    test_server.response = {'items': [expected]}
+    test_server.add_header('Link', '<rooms?bar=baz&max=2>; rel="next"')
+    response = await api.list('rooms')
+    test_server.response = {
+        'items': [
+            'foo',
+            'bar',
+        ]
+    }
+
+    assert await response.__anext__() == expected
+    assert await response.__anext__() == 'foo'
+    assert await response.__anext__() == 'bar'
+    assert test_server.last_parameters == {'bar': 'baz', 'max': '2'}
+    assert test_server.last_headers == expected_headers
 
 
 async def test_getting_details(test_client, test_server):
