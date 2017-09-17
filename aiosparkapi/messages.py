@@ -1,6 +1,10 @@
-class Message:
+import aiosparkapi.baseresponse
+
+
+class Message(aiosparkapi.baseresponse.BaseResponse):
+
     def __init__(self, result):
-        self._result = result
+        super(Message, self).__init__(result)
 
     @property
     def id(self):
@@ -53,17 +57,6 @@ class Message:
     @property
     def files(self):
         return self._result.get('files')
-
-    def __getattr__(self, item):
-        if item not in list(self._result.keys()):
-            error = "'{}' object has no attribute '{}'".format(
-                    self.__class__.__name__, item)
-            raise AttributeError(error)
-
-        return self._result[item]
-
-    def __eq__(self, other):
-        return other == self._result
 
 
 class AsyncGenerator:

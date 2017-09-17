@@ -8,7 +8,7 @@ class StubRequests:
         self.delete_id = None
         self.results = []
 
-    async def list(self, path, parameters):
+    async def list(self, path, parameters=None):
         self.path = path
         self.list_parameters = parameters
         return self.results
