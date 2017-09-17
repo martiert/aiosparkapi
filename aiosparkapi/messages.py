@@ -1,7 +1,8 @@
-import aiosparkapi.baseresponse
+from aiosparkapi.baseresponse import BaseResponse
+from aiosparkapi.async_generator import AsyncGenerator
 
 
-class Message(aiosparkapi.baseresponse.BaseResponse):
+class Message(BaseResponse):
 
     def __init__(self, result):
         super(Message, self).__init__(result)
@@ -59,25 +60,6 @@ class Message(aiosparkapi.baseresponse.BaseResponse):
         return self._result.get('files')
 
 
-class AsyncGenerator:
-
-    def __init__(self, results):
-        self._results = results
-        self._index = 0
-        self._length = len(results)
-
-    async def __aiter__(self):
-        return self
-
-    async def __anext__(self):
-        if self._index == self._length:
-            raise StopAsyncIteration
-
-        message = Message(self._results[self._index])
-        self._index += 1
-        return message
-
-
 class Messages:
     def __init__(self, requests):
         self._requests = requests
@@ -123,7 +105,7 @@ class Messages:
             params['max'] = max
 
         results = await self._requests.list('messages', params)
-        return AsyncGenerator(results)
+        return AsyncGenerator(results, Message)
 
     async def create(self,
                      toRoomId=None,

@@ -1,7 +1,8 @@
-import aiosparkapi.baseresponse
+from aiosparkapi.baseresponse import BaseResponse
+from aiosparkapi.async_generator import AsyncGenerator
 
 
-class Webhook(aiosparkapi.baseresponse.BaseResponse):
+class Webhook(BaseResponse):
 
     def __init__(self, result):
         super(Webhook, self).__init__(result)
@@ -48,4 +49,31 @@ class Webhooks:
         parameters = {}
         if max:
             parameters['max'] = max
-        await self._requests.list('webhooks', parameters)
+        result = await self._requests.list('webhooks', parameters)
+        return AsyncGenerator(result, Webhook)
+
+    async def create(self,
+                     name=None,
+                     targetUrl=None,
+                     resource=None,
+                     event=None,
+                     filter=None,
+                     secret=None):
+
+        assert name is not None
+        assert targetUrl is not None
+        assert resource is not None
+        assert event is not None
+
+        parameters = {
+            'name': name,
+            'targetUrl': targetUrl,
+            'resource': resource,
+            'event': event,
+        }
+        if filter:
+            parameters['filter'] = filter
+        if secret:
+            parameters['secret'] = secret
+
+        return await self._requests.create('webhooks', parameters)
