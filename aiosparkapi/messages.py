@@ -116,11 +116,7 @@ class Messages:
             SparkApiException: If the Cisco Spark cloud returns an error.
         '''
 
-        assert isinstance(roomId, str)
-        assert mentionedPeople is None or isinstance(mentionedPeople, str)
-        assert before is None or isinstance(before, str)
-        assert beforeMessage is None or isinstance(beforeMessage, str)
-        assert max is None or isinstance(max, int)
+        assert roomId is not None
 
         params = {}
         params['roomId'] = roomId

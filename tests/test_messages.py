@@ -58,46 +58,6 @@ async def test_list_missing_roomId():
         await messages.list(mentionedPeople='some person')
 
 
-async def test_list_with_non_string_roomid():
-    requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
-
-    with pytest.raises(AssertionError):
-        await messages.list(roomId=2)
-
-
-async def test_list_with_non_string_mentionedPeople():
-    requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
-
-    with pytest.raises(AssertionError):
-        await messages.list(roomId='room_id', mentionedPeople=['foo'])
-
-
-async def test_list_with_non_string_before():
-    requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
-
-    with pytest.raises(AssertionError):
-        await messages.list(roomId='room_id', before=['foo'])
-
-
-async def test_list_with_non_string_beforeMessage():
-    requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
-
-    with pytest.raises(AssertionError):
-        await messages.list(roomId='room_id', beforeMessage=['foo'])
-
-
-async def test_list_with_non_integer_max():
-    requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
-
-    with pytest.raises(AssertionError):
-        await messages.list(roomId='room_id', max='42')
-
-
 async def test_list_returns_all_properties():
     requests = StubRequests()
     messages = aiosparkapi.messages.Messages(requests)
