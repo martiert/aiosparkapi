@@ -7,17 +7,30 @@ class StubRequests:
 
     def __init__(self):
         self.path = None
-        self.parameters = None
+        self.list_parameters = None
+        self.create_parameters = None
+        self.get_id = None
+        self.delete_id = None
         self.results = []
 
     async def list(self, path, parameters):
         self.path = path
-        self.parameters = parameters
+        self.list_parameters = parameters
         return self.results
 
     async def create(self, path, parameters):
         self.path = path
-        self.parameters = parameters
+        self.create_parameters = parameters
+        return self.results
+
+    async def get(self, path, get_id):
+        self.path = path
+        self.get_id = get_id
+        return self.results
+
+    async def delete(self, path, delete_id):
+        self.path = path
+        self.delete_id = delete_id
         return self.results
 
 
@@ -28,7 +41,7 @@ async def test_list_with_all_required_parameters():
     await messages.list(roomId='some_room_id')
 
     assert requests.path == 'messages'
-    assert requests.parameters == {'roomId': 'some_room_id'}
+    assert requests.list_parameters == {'roomId': 'some_room_id'}
 
 
 async def test_list_using_all_allowed_parameters():
@@ -52,7 +65,7 @@ async def test_list_using_all_allowed_parameters():
     )
 
     assert requests.path == 'messages'
-    assert requests.parameters == expected
+    assert requests.list_parameters == expected
 
 
 async def test_list_missing_roomId():
@@ -137,8 +150,8 @@ async def test_creating_message_to_person_with_id():
     await messages.create(toPersonId='<some id>', text='Hello')
 
     assert requests.path == 'messages'
-    assert requests.parameters == {'toPersonId': '<some id>',
-                                   'text': 'Hello'}
+    assert requests.create_parameters == {'toPersonId': '<some id>',
+                                          'text': 'Hello'}
 
 
 async def test_creating_message_to_person_with_email():
@@ -148,8 +161,8 @@ async def test_creating_message_to_person_with_email():
     await messages.create(toPersonEmail='foo@cisco.com', text='Hello')
 
     assert requests.path == 'messages'
-    assert requests.parameters == {'toPersonEmail': 'foo@cisco.com',
-                                   'text': 'Hello'}
+    assert requests.create_parameters == {'toPersonEmail': 'foo@cisco.com',
+                                          'text': 'Hello'}
 
 
 async def test_creating_message_to_room():
@@ -161,8 +174,8 @@ async def test_creating_message_to_room():
         text='Hello')
 
     assert requests.path == 'messages'
-    assert requests.parameters == {'toRoomId': '<some room id>',
-                                   'text': 'Hello'}
+    assert requests.create_parameters == {'toRoomId': '<some room id>',
+                                          'text': 'Hello'}
 
 
 async def test_creating_message_using_markdown():
@@ -174,8 +187,8 @@ async def test_creating_message_using_markdown():
         markdown='Some markdown')
 
     assert requests.path == 'messages'
-    assert requests.parameters == {'toPersonEmail': 'foo@cisco.com',
-                                   'markdown': 'Some markdown'}
+    assert requests.create_parameters == {'toPersonEmail': 'foo@cisco.com',
+                                          'markdown': 'Some markdown'}
 
 
 async def test_creating_messages_sending_files():
@@ -186,9 +199,11 @@ async def test_creating_messages_sending_files():
         toPersonEmail='foo@cisco.com',
         files=['first_file', 'second_file'])
 
+    expected = {'toPersonEmail': 'foo@cisco.com',
+                'files': ['first_file', 'second_file']}
+
     assert requests.path == 'messages'
-    assert requests.parameters == {'toPersonEmail': 'foo@cisco.com',
-                                   'files': ['first_file', 'second_file']}
+    assert requests.create_parameters == expected
 
 
 async def test_creating_messages_without_recipient():
@@ -241,3 +256,34 @@ async def test_creating_messages_returns_message():
         text='Hello')
 
     assert response == requests.results
+
+
+async def test_get_message_details():
+    requests = StubRequests()
+    messages = aiosparkapi.messages.Messages(requests)
+    requests.results = {
+            'id': 'some message id',
+            'roomId': 'some room id',
+            'roomType': 'group',
+            'text': 'Hi there',
+            'personId': 'some person id',
+            'personEmail': 'foo@bar.com',
+            'created': '2017-09-07T19:54:44.780Z',
+        }
+
+    response = await messages.get('messageid')
+
+    assert requests.path == 'messages'
+    assert requests.get_id == 'messageid'
+    assert response == requests.results
+
+
+async def test_delete_message():
+    requests = StubRequests()
+    messages = aiosparkapi.messages.Messages(requests)
+
+    response = await messages.delete('message_id')
+
+    assert requests.path == 'messages'
+    assert requests.delete_id == 'message_id'
+    assert not response

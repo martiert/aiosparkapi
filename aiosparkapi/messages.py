@@ -165,3 +165,9 @@ class Messages:
             'messages',
             request)
         return results
+
+    async def get(self, message_id):
+        return await self._requests.get('messages', message_id)
+
+    async def delete(self, message_id):
+        await self._requests.delete('messages', message_id)
