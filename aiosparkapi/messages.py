@@ -131,3 +131,37 @@ class Messages:
 
         results = await self._requests.list('messages', params)
         return AsyncGenerator(results)
+
+    async def create(self,
+                     toRoomId=None,
+                     toPersonId=None,
+                     toPersonEmail=None,
+                     text=None,
+                     markdown=None,
+                     files=None):
+
+        number_of_recipients = 0
+        for recipient in [toRoomId, toPersonId, toPersonEmail]:
+            number_of_recipients += 1 if recipient else 0
+
+        assert number_of_recipients == 1
+        assert text is not None or markdown is not None or files is not None
+
+        request = {}
+        if toRoomId:
+            request['toRoomId'] = toRoomId
+        if toPersonId:
+            request['toPersonId'] = toPersonId
+        if toPersonEmail:
+            request['toPersonEmail'] = toPersonEmail
+        if text:
+            request['text'] = text
+        if markdown:
+            request['markdown'] = markdown
+        if files:
+            request['files'] = files
+
+        results = await self._requests.create(
+            'messages',
+            request)
+        return results
