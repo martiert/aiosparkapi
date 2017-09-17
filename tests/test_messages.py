@@ -73,8 +73,10 @@ async def test_list_returns_all_properties():
     ]
 
     response = await messages.list(roomId='some_room_id')
+    got = await response.__anext__()
 
-    assert await response.__anext__() == requests.results[0]
+    assert got == requests.results[0]
+    assert isinstance(got, aiosparkapi.messages.Message)
 
 
 async def test_list_returns_multiple_results():
@@ -108,6 +110,7 @@ async def test_list_returns_multiple_results():
     for expected in requests.results:
         got = await response.__anext__()
         assert got == expected
+        assert isinstance(got, aiosparkapi.messages.Message)
 
     with pytest.raises(StopAsyncIteration):
         await response.__anext__()
@@ -226,6 +229,7 @@ async def test_creating_messages_returns_message():
         text='Hello')
 
     assert response == requests.results
+    assert isinstance(response, aiosparkapi.messages.Message)
 
 
 async def test_get_message_details():
@@ -246,6 +250,7 @@ async def test_get_message_details():
     assert requests.path == 'messages'
     assert requests.get_id == 'messageid'
     assert response == requests.results
+    assert isinstance(response, aiosparkapi.messages.Message)
 
 
 async def test_delete_message():

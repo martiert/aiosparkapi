@@ -139,10 +139,10 @@ class Messages:
         results = await self._requests.create(
             'messages',
             request)
-        return results
+        return Message(results)
 
     async def get(self, message_id):
-        return await self._requests.get('messages', message_id)
+        return Message(await self._requests.get('messages', message_id))
 
     async def delete(self, message_id):
         await self._requests.delete('messages', message_id)

@@ -76,4 +76,26 @@ class Webhooks:
         if secret:
             parameters['secret'] = secret
 
-        return await self._requests.create('webhooks', parameters)
+        return Webhook(await self._requests.create('webhooks', parameters))
+
+    async def get(self, webhook_id):
+        return Webhook(await self._requests.get('webhooks', webhook_id))
+
+    async def delete(self, webhook_id):
+        await self._requests.delete('webhooks', webhook_id)
+
+    async def update(self,
+                     webhook_id,
+                     name=None,
+                     targetUrl=None):
+
+        assert name is not None
+        assert targetUrl is not None
+
+        request = {
+            'name': name,
+            'targetUrl': targetUrl,
+        }
+
+        response = await self._requests.update('webhooks', webhook_id, request)
+        return Webhook(response)
