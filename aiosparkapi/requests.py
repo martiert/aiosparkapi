@@ -1,4 +1,5 @@
 import json
+import aiohttp
 
 import aiosparkapi.exceptions as exceptions
 
@@ -11,6 +12,23 @@ def _add_parameters_to_path(path, parameters):
     for key, value in parameters.items():
         path += '{}={}&'.format(key, value)
     return path[:-1]
+
+
+def _create_multipart(arguments):
+    data = aiohttp.FormData()
+    for key, value in arguments.items():
+        filename = None
+        content_type = None
+        if isinstance(value, dict):
+            filename = value['name']
+            value = value['content']
+
+        data.add_field(
+            key,
+            value,
+            content_type=content_type,
+            filename=filename)
+    return data
 
 
 async def _validate_response(response):
@@ -111,14 +129,19 @@ class Requests:
             return await response.json()
         await _validate_response(response)
 
-    async def create(self, path, arguments):
+    async def create(self, path, arguments, *, multipart=False):
         headers = self._headers
-        headers['content-type'] = 'application/json'
+        data = None
+        if not multipart:
+            headers['content-type'] = 'application/json'
+            data = json.dumps(arguments)
+        else:
+            data = _create_multipart(arguments)
 
         response = await self._client.post(
             path,
             headers=headers,
-            data=json.dumps(arguments))
+            data=data)
 
         if response.status == 200:
             return await response.json()

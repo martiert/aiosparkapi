@@ -1,4 +1,6 @@
 import json
+import io
+
 import pytest
 from aiohttp import web
 
@@ -11,7 +13,7 @@ def get_headers(request):
     if request.headers.get('Authorization'):
         headers['Authorization'] = request.headers['Authorization']
     if request.headers.get('content-type'):
-        headers['content-type'] = request.headers['content-type']
+        headers['content-type'] = request.headers['content-type'].split(';')[0]
 
     return headers
 
@@ -79,8 +81,11 @@ class TestServer:
             return web.Response(status=401)
 
         self.reset()
-        self.last_body = await request.json()
         self.last_headers = get_headers(request)
+        if self.last_headers['content-type'] == 'application/json':
+            self.last_body = await request.json()
+        else:
+            self.last_body = await request.post()
 
         return web.Response(
                 body=json.dumps(self.response).encode(),
@@ -241,6 +246,37 @@ async def test_create_stuff(test_client, test_server):
 
     assert response == expected
     assert test_server.last_body == request
+    assert test_server.last_headers == expected_headers
+    assert test_server.last_id is None
+    assert test_server.last_parameters is None
+
+
+async def test_create_stuff_using_multipart(test_client, test_server):
+    api = await create_api(test_client, test_server)
+    expected = {
+        'create': 'creating a message',
+    }
+    test_server.response = expected
+    expected_headers = {
+        'Authorization': 'Bearer my_bot_token',
+        'content-type': 'multipart/form-data',
+    }
+
+    file_content = b'\x89\x50\x4e\x47\x0d\x0a\x1a\x0axaospdoja'
+    request = {
+        'toPersonEmail': 'someemail@gmail.com',
+        'title': 'Hello world',
+        'file': {
+            'content': io.BytesIO(file_content),
+            'name': 'filename'
+        },
+    }
+    response = await api.create('messages', request, multipart=True)
+
+    assert response == expected
+    assert test_server.last_body['toPersonEmail'] == request['toPersonEmail']
+    assert test_server.last_body['title'] == request['title']
+    assert test_server.last_body['file'].file.read() == file_content
     assert test_server.last_headers == expected_headers
     assert test_server.last_id is None
     assert test_server.last_parameters is None
