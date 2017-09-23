@@ -170,13 +170,23 @@ async def test_creating_messages_sending_files():
 
     await messages.create(
         toPersonEmail='foo@cisco.com',
-        files=['first_file', 'second_file'])
+        files=['https://some_file.com/file.png'])
 
     expected = {'toPersonEmail': 'foo@cisco.com',
-                'files': ['first_file', 'second_file']}
+                'files': ['https://some_file.com/file.png']}
 
     assert requests.path == 'messages'
     assert requests.create_parameters == expected
+
+
+async def test_creating_messages_with_multiple_files_fails():
+    requests = StubRequests()
+    messages = aiosparkapi.messages.Messages(requests)
+
+    with pytest.raises(AssertionError):
+        await messages.create(
+            toPersonEmail='foo@cisco.com',
+            files=['first', 'second'])
 
 
 async def test_creating_messages_without_recipient():

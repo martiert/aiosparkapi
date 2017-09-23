@@ -121,6 +121,7 @@ class Messages:
 
         assert number_of_recipients == 1
         assert text is not None or markdown is not None or files is not None
+        assert files is None or len(files) == 1
 
         request = {}
         if toRoomId:
