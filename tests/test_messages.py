@@ -1,13 +1,13 @@
 import pytest
 from unittest import mock
 
-import aiosparkapi.messages
+import aiosparkapi.api.messages
 from .stubrequests import StubRequests
 
 
 async def test_list_with_all_required_parameters():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     await messages.list(roomId='some_room_id')
 
@@ -17,7 +17,7 @@ async def test_list_with_all_required_parameters():
 
 async def test_list_using_all_allowed_parameters():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     expected = {
         'roomId': 'some_room_id',
@@ -41,7 +41,7 @@ async def test_list_using_all_allowed_parameters():
 
 async def test_list_missing_roomId():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     with pytest.raises(AssertionError):
         await messages.list(mentionedPeople='some person')
@@ -49,7 +49,7 @@ async def test_list_missing_roomId():
 
 async def test_list_returns_all_properties():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
     requests.results = [
         {
             'id': 'first_message_id',
@@ -77,12 +77,12 @@ async def test_list_returns_all_properties():
     got = await response.__anext__()
 
     assert got == requests.results[0]
-    assert isinstance(got, aiosparkapi.messages.Message)
+    assert isinstance(got, aiosparkapi.api.messages.Message)
 
 
 async def test_list_returns_multiple_results():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
     requests.results = [
         {
             'id': 'first_message_id',
@@ -111,7 +111,7 @@ async def test_list_returns_multiple_results():
     for expected in requests.results:
         got = await response.__anext__()
         assert got == expected
-        assert isinstance(got, aiosparkapi.messages.Message)
+        assert isinstance(got, aiosparkapi.api.messages.Message)
 
     with pytest.raises(StopAsyncIteration):
         await response.__anext__()
@@ -119,7 +119,7 @@ async def test_list_returns_multiple_results():
 
 async def test_creating_message_to_person_with_id():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     await messages.create(toPersonId='<some id>', text='Hello')
 
@@ -130,7 +130,7 @@ async def test_creating_message_to_person_with_id():
 
 async def test_creating_message_to_person_with_email():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     await messages.create(toPersonEmail='foo@cisco.com', text='Hello')
 
@@ -141,7 +141,7 @@ async def test_creating_message_to_person_with_email():
 
 async def test_creating_message_to_room():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     await messages.create(
         toRoomId='<some room id>',
@@ -154,7 +154,7 @@ async def test_creating_message_to_room():
 
 async def test_creating_message_using_markdown():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     await messages.create(
         toPersonEmail='foo@cisco.com',
@@ -167,7 +167,7 @@ async def test_creating_message_using_markdown():
 
 async def test_creating_messages_sending_files():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     await messages.create(
         toPersonEmail='foo@cisco.com',
@@ -182,7 +182,7 @@ async def test_creating_messages_sending_files():
 
 async def test_creating_messages_with_multiple_files_fails():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     with pytest.raises(AssertionError):
         await messages.create(
@@ -192,10 +192,10 @@ async def test_creating_messages_with_multiple_files_fails():
 
 async def test_creating_message_with_local_file():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     with mock.patch(
-            'aiosparkapi.messages.open',
+            'aiosparkapi.api.messages.open',
             mock.mock_open(read_data=b'Some data')) as m:
         await messages.create(
             toPersonEmail='foo@cisco.com',
@@ -217,7 +217,7 @@ async def test_creating_message_with_local_file():
 
 async def test_creating_messages_without_recipient():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     with pytest.raises(AssertionError):
         await messages.create(text='what?')
@@ -225,7 +225,7 @@ async def test_creating_messages_without_recipient():
 
 async def test_creating_messages_multiple_recipients():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     with pytest.raises(AssertionError):
         await messages.create(toRoomId='first id',
@@ -241,7 +241,7 @@ async def test_creating_messages_multiple_recipients():
 
 async def test_creating_messages_without_content():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     with pytest.raises(AssertionError):
         await messages.create(toPersonId='some person')
@@ -249,49 +249,49 @@ async def test_creating_messages_without_content():
 
 async def test_creating_messages_returns_message():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
     requests.results = {
-            'id': 'first_message_id',
-            'roomId': 'some_room_id',
-            'roomType': 'direct',
-            'text': 'Hello there',
-            'personId': 'first_person_id',
-            'personEmail': 'someperson@email.com',
-            'created': '2017-09-07T19:54:44.780Z',
-        }
+        'id': 'first_message_id',
+        'roomId': 'some_room_id',
+        'roomType': 'direct',
+        'text': 'Hello there',
+        'personId': 'first_person_id',
+        'personEmail': 'someperson@email.com',
+        'created': '2017-09-07T19:54:44.780Z',
+    }
 
     response = await messages.create(
         toRoomId='some_room_id',
         text='Hello')
 
     assert response == requests.results
-    assert isinstance(response, aiosparkapi.messages.Message)
+    assert isinstance(response, aiosparkapi.api.messages.Message)
 
 
 async def test_get_message_details():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
     requests.results = {
-            'id': 'some message id',
-            'roomId': 'some room id',
-            'roomType': 'group',
-            'text': 'Hi there',
-            'personId': 'some person id',
-            'personEmail': 'foo@bar.com',
-            'created': '2017-09-07T19:54:44.780Z',
-        }
+        'id': 'some message id',
+        'roomId': 'some room id',
+        'roomType': 'group',
+        'text': 'Hi there',
+        'personId': 'some person id',
+        'personEmail': 'foo@bar.com',
+        'created': '2017-09-07T19:54:44.780Z',
+    }
 
     response = await messages.get('messageid')
 
     assert requests.path == 'messages'
     assert requests.get_id == 'messageid'
     assert response == requests.results
-    assert isinstance(response, aiosparkapi.messages.Message)
+    assert isinstance(response, aiosparkapi.api.messages.Message)
 
 
 async def test_delete_message():
     requests = StubRequests()
-    messages = aiosparkapi.messages.Messages(requests)
+    messages = aiosparkapi.api.messages.Messages(requests)
 
     response = await messages.delete('message_id')
 

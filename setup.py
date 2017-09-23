@@ -33,6 +33,6 @@ setup(
 
     keywords='cisco spark api async enterprise messaging',
 
-    packages=['aiosparkapi'],
+    packages=['aiosparkapi', 'aiosparkapi/api'],
     install_requires=['aiohttp>=2.2.5'],
 )

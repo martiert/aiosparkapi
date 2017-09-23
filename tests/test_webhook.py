@@ -1,6 +1,6 @@
 import pytest
 
-import aiosparkapi.webhooks
+import aiosparkapi.api.webhooks
 
 
 def test_webhook_representation_of_all_known_properties():
@@ -15,7 +15,7 @@ def test_webhook_representation_of_all_known_properties():
         'created': '2017-09-07T20:54:44.780Z',
     }
 
-    result = aiosparkapi.webhooks.Webhook(webhook)
+    result = aiosparkapi.api.webhooks.Webhook(webhook)
 
     assert result.id == webhook['id']
     assert result.name == webhook['name']
@@ -37,7 +37,7 @@ def test_webhook_only_required_properties():
         'created': '2017-09-07T20:54:44.780Z',
     }
 
-    result = aiosparkapi.webhooks.Webhook(webhook)
+    result = aiosparkapi.api.webhooks.Webhook(webhook)
 
     assert not result.filter
     assert not result.secret
@@ -54,7 +54,7 @@ def test_webhook_representation_of_unkown_property():
         'something': 'some unkown webhook property',
     }
 
-    result = aiosparkapi.webhooks.Webhook(webhook)
+    result = aiosparkapi.api.webhooks.Webhook(webhook)
 
     assert result.something == webhook['something']
     with pytest.raises(AttributeError):
@@ -73,8 +73,8 @@ def test_webhook_equalities():
         'created': '2017-09-07T20:54:44.780Z',
     }
 
-    first = aiosparkapi.webhooks.Webhook(webhook)
-    second = aiosparkapi.webhooks.Webhook(webhook)
+    first = aiosparkapi.api.webhooks.Webhook(webhook)
+    second = aiosparkapi.api.webhooks.Webhook(webhook)
 
     assert first == second
     assert first == webhook

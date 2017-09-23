@@ -1,6 +1,6 @@
 import pytest
 
-import aiosparkapi.messages
+import aiosparkapi.api.messages
 
 
 def test_message_representation_of_all_known_properties():
@@ -24,7 +24,7 @@ def test_message_representation_of_all_known_properties():
             'http://some_file_hoster.com/second_file',
         ],
     }
-    result = aiosparkapi.messages.Message(message)
+    result = aiosparkapi.api.messages.Message(message)
 
     assert result.id == message['id']
     assert result.roomId == message['roomId']
@@ -50,7 +50,7 @@ async def test_listing_returns_only_non_optional_properties():
         'personEmail': 'someperson@email.com',
         'created': '2017-09-07T19:54:44.780Z',
     }
-    result = aiosparkapi.messages.Message(message)
+    result = aiosparkapi.api.messages.Message(message)
 
     assert result.toPersonId is None
     assert result.toPersonEmail is None
@@ -71,7 +71,7 @@ async def test_message_with_unhandled_property():
         'created': '2017-09-07T19:54:44.780Z',
         'unknown': 'some_unknown_property',
     }
-    result = aiosparkapi.messages.Message(message)
+    result = aiosparkapi.api.messages.Message(message)
 
     assert result.unknown == 'some_unknown_property'
 
@@ -89,8 +89,8 @@ async def test_message_equality():
         'created': '2017-09-07T19:54:44.780Z',
         'unknown': 'some_unknown_property',
     }
-    first = aiosparkapi.messages.Message(message)
-    second = aiosparkapi.messages.Message(message)
+    first = aiosparkapi.api.messages.Message(message)
+    second = aiosparkapi.api.messages.Message(message)
 
     assert first == second
 
@@ -105,6 +105,6 @@ async def test_message_equality_with_dict():
         'created': '2017-09-07T19:54:44.780Z',
         'unknown': 'some_unknown_property',
     }
-    result = aiosparkapi.messages.Message(message)
+    result = aiosparkapi.api.messages.Message(message)
 
     assert result == message
