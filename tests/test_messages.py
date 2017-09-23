@@ -1,4 +1,5 @@
 import pytest
+from unittest import mock
 
 import aiosparkapi.messages
 from .stubrequests import StubRequests
@@ -187,6 +188,31 @@ async def test_creating_messages_with_multiple_files_fails():
         await messages.create(
             toPersonEmail='foo@cisco.com',
             files=['first', 'second'])
+
+
+async def test_creating_message_with_local_file():
+    requests = StubRequests()
+    messages = aiosparkapi.messages.Messages(requests)
+
+    with mock.patch(
+            'aiosparkapi.messages.open',
+            mock.mock_open(read_data=b'Some data')) as m:
+        await messages.create(
+            toPersonEmail='foo@cisco.com',
+            files=['some_local_file.png'])
+
+    m.assert_called_once_with('some_local_file.png', 'rb')
+
+    expected = {
+        'toPersonEmail': 'foo@cisco.com',
+        'file': {
+            'name': 'some_local_file.png',
+            'content': b'Some data',
+        }
+    }
+
+    assert requests.path == 'messages'
+    assert requests.create_multipart_parameters == expected
 
 
 async def test_creating_messages_without_recipient():

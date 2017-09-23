@@ -1,5 +1,12 @@
+import urllib.parse
+
 from aiosparkapi.baseresponse import BaseResponse
 from aiosparkapi.async_generator import AsyncGenerator
+
+
+def _is_url(url):
+    parsed = urllib.parse.urlparse(url)
+    return parsed.scheme.lower() in ['http', 'https', 'ftp'] and parsed.netloc
 
 
 class Message(BaseResponse):
@@ -134,12 +141,21 @@ class Messages:
             request['text'] = text
         if markdown:
             request['markdown'] = markdown
+        multipart = False
         if files:
-            request['files'] = files
+            if _is_url(files[0]):
+                request['files'] = files
+            else:
+                multipart = True
+                request['file'] = {
+                    'content': open(files[0], 'rb'),
+                    'name': files[0],
+                }
 
         results = await self._requests.create(
             'messages',
-            request)
+            request,
+            multipart=multipart)
         return Message(results)
 
     async def get(self, message_id):

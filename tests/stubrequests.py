@@ -4,6 +4,7 @@ class StubRequests:
         self.path = None
         self.list_parameters = None
         self.create_parameters = None
+        self.create_multipart_parameters = None
         self.update_parameters = None
         self.get_id = None
         self.delete_id = None
@@ -15,9 +16,14 @@ class StubRequests:
         self.list_parameters = parameters
         return self.results
 
-    async def create(self, path, parameters):
+    async def create(self, path, parameters, *, multipart=False):
         self.path = path
-        self.create_parameters = parameters
+        if not multipart:
+            self.create_parameters = parameters
+        else:
+            content = parameters['file']['content'].read()
+            parameters['file']['content'] = content
+            self.create_multipart_parameters = parameters
         return self.results
 
     async def get(self, path, get_id):
