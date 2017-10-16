@@ -102,13 +102,15 @@ class AsyncGenerator:
 
 class Requests:
 
-    def __init__(self, token, client):
+    def __init__(self, token, client, baseurl=''):
         self._client = client
         self._headers = {
             'Authorization': 'Bearer {}'.format(token),
         }
+        self._baseurl = baseurl
 
     async def list(self, path, parameters=None):
+        path = '{}/{}'.format(self._baseurl, path)
         path = _add_parameters_to_path(path, parameters)
         response = await self._client.get(path, headers=self._headers)
 
@@ -122,7 +124,7 @@ class Requests:
             self._client, self._headers)
 
     async def get(self, path, fetch_id):
-        path = '{}/{}'.format(path, fetch_id)
+        path = '{}/{}/{}'.format(self._baseurl, path, fetch_id)
         response = await self._client.get(path, headers=self._headers)
 
         if response.status == 200:
@@ -130,6 +132,7 @@ class Requests:
         await _validate_response(response)
 
     async def create(self, path, arguments, *, multipart=False):
+        path = '{}/{}'.format(self._baseurl, path)
         headers = self._headers
         data = None
         if not multipart:
@@ -148,7 +151,7 @@ class Requests:
         await _validate_response(response)
 
     async def update(self, path, update_id, arguments):
-        path = '{}/{}'.format(path, update_id)
+        path = '{}/{}/{}'.format(self._baseurl, path, update_id)
         headers = self._headers
         headers['content-type'] = 'application/json'
 
@@ -162,7 +165,7 @@ class Requests:
         await _validate_response(response)
 
     async def delete(self, path, delete_id):
-        path = '{}/{}'.format(path, delete_id)
+        path = '{}/{}/{}'.format(self._baseurl, path, delete_id)
 
         response = await self._client.delete(
             path,
