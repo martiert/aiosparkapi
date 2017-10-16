@@ -1,3 +1,17 @@
+class IterableFaker:
+    def __init__(self, result):
+        self._result = result
+        self._index = 0
+        self._len = len(result)
+
+    async def __anext__(self):
+        if self._index == self._len:
+            raise StopAsyncIteration
+        answer = self._result[self._index]
+        self._index += 1
+        return answer
+
+
 class StubRequests:
 
     def __init__(self):
@@ -14,7 +28,7 @@ class StubRequests:
     async def list(self, path, parameters=None):
         self.path = path
         self.list_parameters = parameters
-        return self.results
+        return IterableFaker(self.results)
 
     async def create(self, path, parameters, *, multipart=False):
         self.path = path

@@ -1,3 +1,6 @@
+import json
+
+
 class BaseResponse:
 
     def __init__(self, result):
@@ -12,3 +15,6 @@ class BaseResponse:
 
     def __eq__(self, other):
         return self._result == other
+
+    def __str__(self):
+        return json.dumps(self._result, indent=2)
