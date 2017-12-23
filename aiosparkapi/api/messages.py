@@ -71,12 +71,7 @@ class Messages:
     def __init__(self, requests):
         self._requests = requests
 
-    async def list(self,
-                   roomId=None,
-                   mentionedPeople=None,
-                   before=None,
-                   beforeMessage=None,
-                   max=None):
+    async def list(self, **kwargs):
         '''List all messages in a room
 
         Args:
@@ -98,20 +93,8 @@ class Messages:
             SparkApiException: If the Cisco Spark cloud returns an error.
         '''
 
-        assert roomId is not None
-
-        params = {}
-        params['roomId'] = roomId
-        if mentionedPeople:
-            params['mentionedPeople'] = mentionedPeople
-        if before:
-            params['before'] = before
-        if beforeMessage:
-            params['beforeMessage'] = beforeMessage
-        if max:
-            params['max'] = max
-
-        results = await self._requests.list('messages', params)
+        assert 'roomId' in kwargs
+        results = await self._requests.list('messages', kwargs)
         return AsyncGenerator(results, Message)
 
     async def create(self,
@@ -120,7 +103,8 @@ class Messages:
                      toPersonEmail=None,
                      text=None,
                      markdown=None,
-                     files=None):
+                     files=None,
+                     **kwargs):
 
         number_of_recipients = 0
         for recipient in [toRoomId, toPersonId, toPersonEmail]:
@@ -151,6 +135,9 @@ class Messages:
                     'content': open(files[0], 'rb'),
                     'name': files[0],
                 }
+
+        for key, value in kwargs.items():
+            request[key] = value
 
         results = await self._requests.create(
             'messages',

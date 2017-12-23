@@ -81,28 +81,8 @@ class People:
     def __init__(self, requests):
         self._requests = requests
 
-    async def list(self,
-                   *,
-                   email=None,
-                   displayName=None,
-                   id=None,
-                   orgId=None,
-                   max=None):
-
-        params = {}
-
-        if email:
-            params['email'] = email
-        if displayName:
-            params['displayName'] = displayName
-        if id:
-            params['id'] = id
-        if orgId:
-            params['orgId'] = orgId
-        if max:
-            params['max'] = max
-
-        result = await self._requests.list('people', params)
+    async def list(self, **kwargs):
+        result = await self._requests.list('people', kwargs)
         return AsyncGenerator(result, Person)
 
     async def get(self, person_id):
@@ -110,3 +90,7 @@ class People:
 
     async def me(self):
         return await self.get('me')
+
+    async def create(self, **kwargs):
+        assert 'emails' in kwargs and type(kwargs['emails']) in [list, tuple]
+        return Person(await self._requests.create('people', kwargs))
